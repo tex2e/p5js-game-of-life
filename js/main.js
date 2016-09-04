@@ -58,26 +58,6 @@ function draw() {
       cells[x][y].drawMe();
     }
   }
-
-  // activate cell at random
-  var randX = Math.floor(random(0, width  / Cell.cellSize))
-  var randY = Math.floor(random(0, height / Cell.cellSize))
-  cells[randX][randY].state = 255;
-
-  // activate cell if mouse is pressed
-  if (mouseIsPressed) {
-    mousePressed();
-  }
-}
-
-function mousePressed() {
-  if (0 <= mouseX && mouseX < width &&
-      0 <= mouseY && mouseY < height) {
-    var x = Math.floor(mouseX / Cell.cellSize);
-    var y = Math.floor(mouseY / Cell.cellSize);
-    console.log(x, y);
-    cells[x][y].state = 255;
-  }
 }
 
 
@@ -87,8 +67,7 @@ var Cell = function (x, y) {
   this.x = x * Cell.cellSize;
   this.y = y * Cell.cellSize;
   // set initial state
-  this.nextState = 0;
-  this.lastState = 0;
+  this.nextState = (random(2) > 1) ? true: false;
   this.state = this.nextState;
   this.neighbours = []; // [Cell]
 }
@@ -100,22 +79,33 @@ Cell.prototype.addNeightbour = function (otherCell) {
 };
 
 Cell.prototype.calcNextState = function () {
-  var total =
+  var liveCount =
     this.neighbours.reduce(function (sum, cell) {
       return sum + cell.state;
     }, 0);
-  var average = Math.floor(total / 8);
 
-  this.nextState = this.state + average - this.lastState;
-  if (this.nextState > 255) this.nextState = 255;
-  if (this.nextState < 0)   this.nextState = 0;
-
-  this.lastState = this.state;
+  if (this.state === true) {
+    if (liveCount === 2 || liveCount === 3) {
+      this.nextState = true;
+    } else {
+      this.nextState = false;
+    }
+  } else {
+    if (liveCount === 3) {
+      this.nextState = true;
+    } else {
+      this.nextState = false;
+    }
+  }
 };
 
 Cell.prototype.drawMe = function () {
   this.state = this.nextState;
   stroke(0);
-  fill(this.state * 0.8);
-  ellipse(this.x, this.y, Cell.cellSize * this.state * 0.01, Cell.cellSize * this.state * 0.01);
+  if (this.state === true) {
+    fill(0);
+  } else {
+    fill(255);
+  }
+  ellipse(this.x, this.y, Cell.cellSize, Cell.cellSize);
 };
